@@ -21,8 +21,9 @@ EXCLUDE = [
     "7128_068", # Sheffield: data only until T2 haste
 ]
 
-downloadpath = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_1_download')
-datapath = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_2_data')
+DATADIR = 'C:\\Users\\md1spsx\\Documents\\Data\\iBEAt_Build\\dixon'
+downloadpath = os.path.join(DATADIR, 'stage_1_download')
+datapath = os.path.join(DATADIR, 'stage_2_data')
 os.makedirs(datapath, exist_ok=True)
 
 
@@ -744,6 +745,25 @@ def leeds_repeatability():
                     db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
+def bari_fix_069():
+    # The in-phase of the second baseline dixon is missing the last slice
+    # Duplicating the current last slice to fix this
+    sitedatapath = os.path.join(datapath, "Patients", "Bari")
+    ip = [sitedatapath, '1128_069', 'Baseline', 'Dixon_2_in_phase']
+
+    # Get in-phase slices
+    ip_slices = db.slices(ip)
+
+    # Create a new slice and shift the position one slice spacing up
+    dz = ip_slices[-1].pos - ip_slices[-2].pos
+    ip_new_affine = ip_slices[-1].affine.copy()
+    ip_new_affine[:3, 3] += dz
+    ip_new_slice = vreg.volume(ip_slices[-1].values, ip_new_affine)
+
+    # Append it to the in-phase series
+    db.write_volume(ip_new_slice, ip, ref=ip, append=True)
+
+
 
 def bari_030(dixon_split):
 
@@ -1008,28 +1028,7 @@ def bari_patients():
                     db.write_volume(out_phase_vol, out_phase_clean, ref=dixon_split[out_phase][1])
                     db.write_volume(in_phase_vol, in_phase_clean, ref=dixon_split[in_phase][1])
 
-                # # Predict fat and water
-                # # ---------------------
-                # This works but the results are poor
-                # Uncomment when the method has been improved
-
-                # try:
-                #     out_phase = db.volume(out_phase_clean)
-                #     in_phase = db.volume(in_phase_clean)
-                # except Exception as e:
-                #     logging.error(
-                #         f"Patient {pat_id}: error predicting fat-water separation. "
-                #         f"Cannot read out-phase or in-phase volumes: {e}")
-                #     continue
-                # array = np.stack((out_phase.values, in_phase.values), axis=-1)
-                # fw = miblab.kidney_dixon_fat_water(array)
-
-                # # Save fat and water
-                # fat = [sitedatapath, pat_id, 'Baseline', pat_series[-1] + 'fat']
-                # water = [sitedatapath, pat_id, 'Baseline', pat_series[-1] + 'water']
-                # ref = out_phase_clean
-                # db.write_volume((fw['fat'], out_phase.affine), fat, ref)
-                # db.write_volume((fw['water'], out_phase.affine), water, ref)
+    bari_fix_069()
 
 
 
@@ -2207,4 +2206,6 @@ if __name__=='__main__':
     # turku_ge_volunteers()
     # turku_ge_setup()
     # exeter_setup()
-    exeter_repeatability()
+    # exeter_repeatability()
+
+    bari_fix_069()

@@ -6,12 +6,12 @@ from datetime import datetime
 from tqdm import tqdm
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
+
 import dbdicom as db
 import pydicom
 
 from utils.constants import SITE_IDS
+from utils.db_plot import db_mosaic
 
 
 datapath = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_2_data')
@@ -57,6 +57,7 @@ def calculate_age(birth_date_str, current_date_str):
 
 
 def check_fatwater_swap(site):
+    
     if site == 'Controls':
         sitedatapath = os.path.join(datapath, "Controls") 
         sitepngpath = os.path.join(data_qc_path, f'controls_fat_water_swap.png')
@@ -81,60 +82,9 @@ def check_fatwater_swap(site):
     # If there are no fat images there is nothing to do
     if series_fat == []:
         return
-
-    # Build list of center slices
-    center_slices = []
-    for series in tqdm(series_fat, desc='Reading fat images'):
-        vol = db.volume(series)
-        center_slice = vol.values[:,:,round(vol.shape[-1]/2)]
-        center_slices.append(center_slice)
-
-    # Display center slices as mosaic
-    ncols = int(np.ceil(np.sqrt(len(center_slices))))
-    fig, ax = plt.subplots(nrows=ncols, ncols=ncols, gridspec_kw = {'wspace':0, 'hspace':0}, figsize=(10,10), dpi=300)
-
-    i=0
-    for row in tqdm(ax, desc='Building png'):
-        for col in row:
-
-            col.set_xticklabels([])
-            col.set_yticklabels([])
-            col.set_aspect('equal')
-            col.axis("off")
-
-            if i < len(center_slices):
-
-                # Show center image
-                col.imshow(
-                    center_slices[i].T, 
-                    cmap='gray', 
-                    interpolation='none', 
-                    vmin=0, 
-                    vmax=np.mean(center_slices[i]) + 2 * np.std(center_slices[i])
-                )
-                # Add white text with black background in upper-left corner
-                patient_id = series_fat[i][1]
-                series_desc = series_fat[i][-1][0]
-                if site == 'Controls':
-                    time_point = f"_{series_fat[i][2][0]}"
-                else:
-                    time_point = "_Followup" if series_fat[i][2][0] == "Followup" else "_Baseline"
-                col.text(
-                    0.01, 0.99,                   
-                    f'{patient_id+time_point}\n{series_desc}',   
-                    color='white',
-                    fontsize=2,
-                    ha='left',
-                    va='top',
-                    transform=col.transAxes,     # Use axes coordinates
-                    bbox=dict(facecolor='black', alpha=0.7, boxstyle='round,pad=0.3')
-                )
-
-            i+=1 
-
-    fig.suptitle('FatMaps', fontsize=14)
-    fig.savefig(sitepngpath)
-    plt.close()
+    
+    db_mosaic(series_fat, sitepngpath, title="Fat maps")
+    
 
 
 
@@ -270,14 +220,23 @@ def demographics(group, site=None):
         writer.writerows(data)
 
 
+
+
+    # Save as csv
+    with open(csv_file, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+
+
 def all():
     check_fatwater_swap('Turku')
 
 
 if __name__=='__main__':
     
-    # count_dixons('Exeter')
+    count_dixons('Exeter')
     # fatwater_swap_record_template('Controls')
-    check_fatwater_swap('Controls')
+    # check_fatwater_swap('Controls')
     # count_dixons('Controls')
     # demographics('Controls')
+   

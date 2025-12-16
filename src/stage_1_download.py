@@ -5,7 +5,7 @@ Automatic download of DIXON data from XNAT.
 
 import os
 
-from utils import xnat
+import miblab_data as data
 
 path = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_1_download')  
 os.makedirs(path, exist_ok=True)
@@ -13,8 +13,8 @@ os.makedirs(path, exist_ok=True)
 
 
 def leeds_patients():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -26,8 +26,8 @@ def leeds_patients():
     )
 
 def leeds_volunteers():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -39,8 +39,8 @@ def leeds_volunteers():
     )
 
 def leeds_setup():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -52,8 +52,8 @@ def leeds_setup():
     )
 
 def bari_patients():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -68,8 +68,8 @@ def bari_patients():
     )
 
 def bari_volunteers():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -84,8 +84,8 @@ def bari_volunteers():
 
 
 def sheffield_patients():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -110,8 +110,8 @@ def sheffield_patients():
     )
 
 def turku_ge_patients():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -132,8 +132,8 @@ def turku_ge_patients():
     )
 
 def turku_ge_repeatability():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -154,8 +154,8 @@ def turku_ge_repeatability():
     )
 
 def turku_ge_setup():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -176,8 +176,8 @@ def turku_ge_setup():
     )
 
 def turku_philips_patients():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -192,8 +192,8 @@ def turku_philips_patients():
     )
 
 def turku_philips_repeatability():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -208,8 +208,8 @@ def turku_philips_repeatability():
     )
 
 def bordeaux_patients_baseline():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -231,8 +231,8 @@ def bordeaux_patients_baseline():
     )
 
 def bordeaux_volunteers():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -253,8 +253,8 @@ def bordeaux_volunteers():
     )
 
 def bordeaux_patients_followup():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -275,8 +275,8 @@ def bordeaux_patients_followup():
     )
 
 def exeter_patients_baseline():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -299,8 +299,8 @@ def exeter_patients_baseline():
     )
 
 def exeter_patients_followup():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -321,8 +321,8 @@ def exeter_patients_followup():
     )
 
 def exeter_volunteers():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
@@ -345,8 +345,8 @@ def exeter_volunteers():
     )
 
 def exeter_setup():
-    username, password = xnat.credentials()
-    xnat.download_scans(
+    username, password = data.xnat_credentials()
+    data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
         username=username,
         password=password,
