@@ -2,6 +2,7 @@ import os
 import logging
 import csv
 from datetime import datetime
+import argparse
 
 from tqdm import tqdm
 import matplotlib
@@ -14,17 +15,7 @@ from utils.constants import SITE_IDS
 from utils.db_plot import db_mosaic
 
 
-datapath = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_2_data')
-data_qc_path = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_3_check')
-os.makedirs(data_qc_path, exist_ok=True)
 
-
-# Set up logging
-logging.basicConfig(
-    filename=os.path.join(data_qc_path, 'error.log'),
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
 
 
 def calculate_age(birth_date_str, current_date_str):
@@ -56,7 +47,11 @@ def calculate_age(birth_date_str, current_date_str):
 
 
 
-def check_fatwater_swap(site):
+def check_fatwater_swap(build, site):
+
+    datapath = os.path.join(build, 'stage_2_data')
+    data_qc_path = os.path.join(build, 'stage_3_check')
+    os.makedirs(data_qc_path, exist_ok=True)
     
     if site == 'Controls':
         sitedatapath = os.path.join(datapath, "Controls") 
@@ -88,7 +83,7 @@ def check_fatwater_swap(site):
 
 
 
-def fatwater_swap_record_template(site):
+def fatwater_swap_record_template(build, site):
     """
     Template json file for manual recording of fat water swaps.
 
@@ -98,6 +93,11 @@ def fatwater_swap_record_template(site):
     The completed record should 
     be preserved in the data folder to be used in analyses.
     """
+
+    datapath = os.path.join(build, 'stage_2_data')
+    data_qc_path = os.path.join(build, 'stage_3_check')
+    os.makedirs(data_qc_path, exist_ok=True)
+
     if site == 'Controls':
         sitedatapath = os.path.join(datapath, "Controls")
     else:
@@ -128,7 +128,11 @@ def fatwater_swap_record_template(site):
         writer.writerows(swap_record)
 
 
-def count_dixons(site):
+def count_dixons(build, site):
+
+    datapath = os.path.join(build, 'stage_2_data')
+    data_qc_path = os.path.join(build, 'stage_3_check')
+    os.makedirs(data_qc_path, exist_ok=True)
 
     if site == 'Controls':
         sitedatapath = os.path.join(datapath, "Controls")
@@ -170,7 +174,11 @@ def count_dixons(site):
         writer.writerows(data)
 
 
-def demographics(group, site=None):
+def demographics(build, group, site=None):
+
+    datapath = os.path.join(build, 'stage_2_data')
+    data_qc_path = os.path.join(build, 'stage_3_check')
+    os.makedirs(data_qc_path, exist_ok=True)
 
     if group == 'Controls':
         sitedatapath = os.path.join(datapath, group)
@@ -228,15 +236,28 @@ def demographics(group, site=None):
         writer.writerows(data)
 
 
-def all():
-    check_fatwater_swap('Turku')
+def run(build):
+    
+    count_dixons(build, 'Exeter')
+    fatwater_swap_record_template(build, 'Controls')
+    check_fatwater_swap(build, 'Controls')
+    count_dixons(build, 'Controls')
+    demographics(build, 'Controls')
 
 
 if __name__=='__main__':
+
+    BUILD = r'C:\Users\md1spsx\Documents\Data\iBEAt_Build\dixon'
     
-    count_dixons('Exeter')
-    # fatwater_swap_record_template('Controls')
-    # check_fatwater_swap('Controls')
-    # count_dixons('Controls')
-    # demographics('Controls')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build", type=str, default=BUILD, help="Build folder")
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        filename=os.path.join(args.build, 'stage_3_check.log'),
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    
+    run(args.build)
    

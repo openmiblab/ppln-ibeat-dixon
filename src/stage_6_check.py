@@ -2,7 +2,9 @@ import os
 import argparse
 import logging
 
+from tqdm import tqdm
 import dbdicom as db
+
 from utils.db_plot import db_mosaic
 
 
@@ -15,29 +17,56 @@ def run(build):
 
 def run_site(build, group, site=None):
 
-    resultspath = os.path.join(build, 'stage_6_check')
+    input = 'stage_5_clean_dixon_data'
+    output = 'stage_6_check'
+
+    resultspath = os.path.join(build, 'dixon', output)
     os.makedirs(resultspath, exist_ok=True)
     summary = os.path.join(resultspath, 'summary.txt')
-
+    
     if group == 'Controls':
-        datapath = os.path.join(build, 'stage_5_clean_dixon_data', group) 
+        clean_db = os.path.join(build, 'dixon', input, group) 
         csv = os.path.join(resultspath, f'{group}.csv')
         png = os.path.join(resultspath, f'{group}.png')
+        params = os.path.join(resultspath, f'{group}_sequence_parameters.txt')
     else:
-        datapath = os.path.join(build, 'stage_5_clean_dixon_data', group, site)
+        clean_db = os.path.join(build, 'dixon', input, group, site)
         csv = os.path.join(resultspath, f'{group}_{site}.csv')
         png = os.path.join(resultspath, f'{group}_{site}.png')
-    
-    # Build csv
+        params = os.path.join(resultspath, f'{group}_{site}_sequence_parameters.txt')
 
-    db.to_csv(datapath, csv)
+    _parameter_summary(params, clean_db, group, site)
+    # db.to_csv(clean_db, csv)
+    # _text_summary(summary, clean_db, group, site)
+    # _mosaic(png, clean_db)
+
+
+def _parameter_summary(params, clean_db, group, site):
+
+    series = db.series(clean_db)
+    with open(params, 'a') as f:
+        for s in tqdm(series, desc=f"Reading parameters for {group} (site: {'all' if site is None else site})"):
+            patient = s[1]
+            study_desc = s[2][0]
+            series_desc = s[3][0]
+            if '_fat' in series_desc:
+                continue
+            if '_water' in series_desc:
+                continue
+            vals = db.unique(['EchoTime', 'FlipAngle', 'RepetitionTime'], s)
+            f.write(f"{patient} > {study_desc} > {series_desc}\n")
+            f.write(f"    TE = {vals['EchoTime']}\n")
+            f.write(f"    FA = {vals['FlipAngle']}\n")
+            f.write(f"    TR = {vals['RepetitionTime']}\n")
+
+
+def _text_summary(summary, clean_db, group, site):
+
+    patients = db.patients(clean_db)
+    studies = db.studies(clean_db)
+    series = db.series(clean_db)
 
     # Build txt summary
-
-    patients = db.patients(datapath)
-    studies = db.studies(datapath)
-    series = db.series(datapath)
-
     nr_studies = {}
     for patient in patients:
         n = len([s for s in studies if s[:2]==patient[:2]])
@@ -86,38 +115,32 @@ def run_site(build, group, site=None):
             f.write(f"    {nr_post_series[n]} with {n} post-contrast series\n")
 
 
-    # Build png mosaic
-
-    series_desc = [s[-1][0] for s in series]
-    series_fat = [s for i, s in enumerate(series) if series_desc[i][-3:]=='fat']
+def _mosaic(png, clean_db):
 
     if os.path.exists(png):
         return
-    
+
+    series = db.series(clean_db)
+    series_desc = [s[-1][0] for s in series]
+    series_fat = [s for i, s in enumerate(series) if series_desc[i][-3:]=='fat']
+
     db_mosaic(series_fat, png, title="Fat maps")
 
-
-# def run(build):
-
-#     datapath = os.path.join(build, 'stage_5_clean_dixon') 
-#     resultspath = os.path.join(build, 'stage_5_check')
-#     os.makedirs(resultspath, exist_ok=True)
-#     resultsfile = os.path.join(resultspath, 'dixon.csv')
-#     db.to_csv(datapath, resultsfile)
 
 
 if __name__=='__main__':
 
-    BUILD = r'C:\Users\md1spsx\Documents\Data\iBEAt_Build\dixon'
+    BUILD = r'C:\Users\md1spsx\Documents\Data\iBEAt_Build'
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--build", type=str, default=BUILD, help="Build folder")
     args = parser.parse_args()
 
-    os.makedirs(args.build, exist_ok=True)
+    build = os.path.join(args.build, 'dixon')
+    os.makedirs(build, exist_ok=True)
 
     logging.basicConfig(
-        filename=os.path.join(args.build, 'stage_6_check_log.txt'),
+        filename=os.path.join(build, 'stage_6_check.log'),
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )

@@ -8,6 +8,7 @@ import shutil
 import logging
 import tempfile
 import csv
+import argparse
 
 from tqdm import tqdm
 import numpy as np
@@ -21,18 +22,7 @@ EXCLUDE = [
     "7128_068", # Sheffield: data only until T2 haste
 ]
 
-DATADIR = 'C:\\Users\\md1spsx\\Documents\\Data\\iBEAt_Build\\dixon'
-downloadpath = os.path.join(DATADIR, 'stage_1_download')
-datapath = os.path.join(DATADIR, 'stage_2_data')
-os.makedirs(datapath, exist_ok=True)
 
-
-# Set up logging
-logging.basicConfig(
-    filename=os.path.join(datapath, 'error.log'),
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
 
 
 def flatten_folder(root_folder):
@@ -498,7 +488,10 @@ def swap_fat_water(record, dixon, series, image_type):
     return dixon
 
 
-def leeds_054():
+def leeds_054(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient 054
     # Problem: each image saved in a separate series with its own SeriesInstanceUID
@@ -547,7 +540,10 @@ def leeds_054():
 
 
 
-def leeds_patients():
+def leeds_patients(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Leeds", "Leeds_Patients")
@@ -606,7 +602,10 @@ def leeds_patients():
                     db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def leeds_setup():
+def leeds_setup(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Leeds", "Leeds_setup_scans")
@@ -678,7 +677,10 @@ def leeds_setup():
                     db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def leeds_repeatability():
+def leeds_repeatability(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Leeds", "Leeds_volunteer_repeatability_study")
@@ -745,9 +747,10 @@ def leeds_repeatability():
                     db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def bari_fix_069():
+def bari_fix_069(build):
     # The in-phase of the second baseline dixon is missing the last slice
     # Duplicating the current last slice to fix this
+    datapath = os.path.join(build, 'stage_2_data')
     sitedatapath = os.path.join(datapath, "Patients", "Bari")
     ip = [sitedatapath, '1128_069', 'Baseline', 'Dixon_2_in_phase']
 
@@ -765,7 +768,7 @@ def bari_fix_069():
 
 
 
-def bari_030(dixon_split):
+def bari_030(dixon_split, build):
 
     # The precontrast dixon of this subject has missing slices in the 
     # middle. In out-phase is missing 2 consecutive slices at slice 
@@ -773,6 +776,7 @@ def bari_030(dixon_split):
     # slice location 13. Solved by interpolating to recover the missing 
     # slices.
 
+    datapath = os.path.join(build, 'stage_2_data')
     sitedatapath = os.path.join(datapath, "Patients", "Bari")
     pat_id = '1128_030'
     series_desc = 'Dixon_1'
@@ -825,7 +829,10 @@ def bari_030(dixon_split):
     db.write_volume(out_phase_vol, out_phase_clean, ref=series)
 
 
-def bari_volunteers():
+def bari_volunteers(build):
+
+    datapath = os.path.join(build, 'stage_2_data')
+    downloadpath = os.path.join(build, 'stage_1_download')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bari", "Bari_Volunteers_Repeatability")
@@ -926,7 +933,10 @@ def bari_volunteers():
                     db.write_volume(in_phase_vol, in_phase_clean, ref=dixon_split[in_phase][1])
 
 
-def bari_patients():
+def bari_patients(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bari", "Bari_Patients")
@@ -1007,7 +1017,7 @@ def bari_patients():
 
                 # Special case
                 if (pat_id == '1128_030') and (pat_series[-1] == 'Dixon_1_'):
-                    bari_030(dixon_split)
+                    bari_030(dixon_split, build)
                     continue
 
                 # Out_phase is the one with the smallest TE
@@ -1028,12 +1038,15 @@ def bari_patients():
                     db.write_volume(out_phase_vol, out_phase_clean, ref=dixon_split[out_phase][1])
                     db.write_volume(in_phase_vol, in_phase_clean, ref=dixon_split[in_phase][1])
 
-    bari_fix_069()
+    bari_fix_069(build)
 
 
 
 
-def sheffield():
+def sheffield(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Sheffield")
@@ -1132,7 +1145,10 @@ def sheffield():
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def turku_ge_patients():
+def turku_ge_patients(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_Patients_GE")
@@ -1228,7 +1244,10 @@ def turku_ge_patients():
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def turku_ge_volunteers():
+def turku_ge_volunteers(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_Volunteers_GE_Repeatability")
@@ -1337,7 +1356,10 @@ def turku_ge_volunteers():
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def turku_ge_setup():
+def turku_ge_setup(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_GE_Setup_Tests")
@@ -1426,7 +1448,10 @@ def turku_ge_setup():
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
                                 
-def turku_philips_patients():
+def turku_philips_patients(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku","Turku_Patients_Philips")
@@ -1517,7 +1542,10 @@ def turku_philips_patients():
                     db.write_volume(vol, dixon_clean[split_series[0]], ref=split_series[1])
 
 
-def turku_philips_volunteers():
+def turku_philips_volunteers(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_volunteer_repeatability_study")
@@ -1623,7 +1651,10 @@ def turku_philips_volunteers():
                     db.write_volume(vol, dixon_clean[split_series[0]], ref=split_series[1])
                     
 
-def bordeaux_patients(visit='Baseline'):
+def bordeaux_patients(build, visit='Baseline'):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bordeaux", f"Bordeaux_Patients_{visit}")
@@ -1708,7 +1739,10 @@ def bordeaux_patients(visit='Baseline'):
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def bordeaux_volunteers():
+def bordeaux_volunteers(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bordeaux", f"Bordeaux_Volunteers_Repeatability_Baseline")
@@ -1817,7 +1851,10 @@ def exeter_interpolate_vol(series):
     return vreg.volume(pixel_data, affine)
 
 
-def exeter_111():
+def exeter_111(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # In- and opposed phase combined in the same series
     # No fat or water maps computed
@@ -1888,7 +1925,10 @@ def exeter_111():
 
 
 
-def exeter_patients(visit='Baseline'):
+def exeter_patients(build, visit='Baseline'):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Exeter", f"Exeter_Patients_{visit}")
@@ -1913,7 +1953,7 @@ def exeter_patients(visit='Baseline'):
             continue
 
         if (visit, pat_id) == ('Baseline', '3128_111'):
-            exeter_111()
+            exeter_111(build)
             continue
 
         # split over two folders - needs checking at series level (see below)
@@ -2001,7 +2041,10 @@ def exeter_patients(visit='Baseline'):
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def exeter_setup():
+def exeter_setup(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Exeter", f"Exeter_setup_scans")
@@ -2087,7 +2130,10 @@ def exeter_setup():
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def exeter_repeatability():
+def exeter_repeatability(build):
+
+    downloadpath = os.path.join(build, 'stage_1_download')
+    datapath = os.path.join(build, 'stage_2_data')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Exeter", f"Exeter_Volunteer")
@@ -2177,35 +2223,44 @@ def exeter_repeatability():
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
+def run(build):
 
-def all():
-    # leeds()
-    # bari_patients()
-    # sheffield()
-    turku_ge_patients()
-    turku_philips_patients()
+    sheffield(build)
+    leeds_patients(build)
+    bari_patients(build)
+    turku_philips_patients(build)
+    turku_ge_patients(build)
+    bordeaux_patients(build, 'Baseline')
+    bordeaux_patients(build, 'Followup')
+    exeter_patients(build, 'Baseline')
+    exeter_patients(build, 'Followup')
+
+    bari_volunteers(build)
+    leeds_setup(build)
+    leeds_repeatability(build)
+    bordeaux_volunteers(build)
+    turku_philips_volunteers(build)
+    turku_ge_volunteers(build)
+    turku_ge_setup(build)
+    exeter_setup(build)
+    exeter_repeatability(build)
+
+    bari_fix_069(build)
 
 
 if __name__=='__main__':
+
+    BUILD = r'C:\Users\md1spsx\Documents\Data\iBEAt_Build\dixon'
     
-    # sheffield()
-    # leeds_patients()
-    # bari_patients()
-    # turku_philips_patients()
-    # turku_ge_patients()
-    # bordeaux_patients('Baseline')
-    # bordeaux_patients('Followup')
-    # exeter_patients('Baseline')
-    # exeter_patients('Followup')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build", type=str, default=BUILD, help="Build folder")
+    args = parser.parse_args()
 
-    # bari_volunteers()
-    # leeds_setup()
-    # leeds_repeatability()
-    # bordeaux_volunteers()
-    # turku_philips_volunteers()
-    # turku_ge_volunteers()
-    # turku_ge_setup()
-    # exeter_setup()
-    # exeter_repeatability()
+    logging.basicConfig(
+        filename=os.path.join(args.build, 'stage_2_data_harmonization.log'),
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
 
-    bari_fix_069()
+    run(args.build)
+

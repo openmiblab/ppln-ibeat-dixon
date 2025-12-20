@@ -1,18 +1,16 @@
 """
 Automatic download of DIXON data from XNAT.
-
 """
 
 import os
+import logging
+import argparse
 
 import miblab_data as data
 
-path = os.path.join(os.getcwd(), 'build', 'dixon', 'stage_1_download')  
-os.makedirs(path, exist_ok=True)
 
 
-
-def leeds_patients():
+def leeds_patients(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -25,7 +23,7 @@ def leeds_patients():
         value="*fl3d2",
     )
 
-def leeds_volunteers():
+def leeds_volunteers(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -38,7 +36,7 @@ def leeds_volunteers():
         value="*fl3d2",
     )
 
-def leeds_setup():
+def leeds_setup(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -51,7 +49,7 @@ def leeds_setup():
         value=("*fl3d2", 144),
     )
 
-def bari_patients():
+def bari_patients(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -67,7 +65,7 @@ def bari_patients():
         ],
     )
 
-def bari_volunteers():
+def bari_volunteers(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -83,7 +81,7 @@ def bari_volunteers():
     )
 
 
-def sheffield_patients():
+def sheffield_patients(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -109,7 +107,7 @@ def sheffield_patients():
         ],
     )
 
-def turku_ge_patients():
+def turku_ge_patients(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -131,7 +129,7 @@ def turku_ge_patients():
         ],
     )
 
-def turku_ge_repeatability():
+def turku_ge_repeatability(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -153,7 +151,7 @@ def turku_ge_repeatability():
         ],
     )
 
-def turku_ge_setup():
+def turku_ge_setup(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -175,7 +173,7 @@ def turku_ge_setup():
         ],
     )
 
-def turku_philips_patients():
+def turku_philips_patients(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -191,7 +189,7 @@ def turku_philips_patients():
         ],
     )
 
-def turku_philips_repeatability():
+def turku_philips_repeatability(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -207,7 +205,7 @@ def turku_philips_repeatability():
         ],
     )
 
-def bordeaux_patients_baseline():
+def bordeaux_patients_baseline(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -230,7 +228,7 @@ def bordeaux_patients_baseline():
         ],
     )
 
-def bordeaux_volunteers():
+def bordeaux_volunteers(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -252,7 +250,7 @@ def bordeaux_volunteers():
         ],
     )
 
-def bordeaux_patients_followup():
+def bordeaux_patients_followup(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -274,7 +272,7 @@ def bordeaux_patients_followup():
         ],
     )
 
-def exeter_patients_baseline():
+def exeter_patients_baseline(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -298,7 +296,7 @@ def exeter_patients_baseline():
         ],
     )
 
-def exeter_patients_followup():
+def exeter_patients_followup(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -320,7 +318,7 @@ def exeter_patients_followup():
         ],
     )
 
-def exeter_volunteers():
+def exeter_volunteers(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -344,7 +342,7 @@ def exeter_volunteers():
         ],
     )
 
-def exeter_setup():
+def exeter_setup(path):
     username, password = data.xnat_credentials()
     data.xnat_download_series(
         xnat_url="https://qib.shef.ac.uk",
@@ -368,35 +366,44 @@ def exeter_setup():
         ],
     )
 
+def run(path):
+    leeds_patients(path)
+    bari_patients(path)
+    sheffield_patients(path)
+    turku_philips_patients(path)
+    bordeaux_patients_baseline(path)
+    bordeaux_patients_followup(path)
+    exeter_patients_baseline(path)
+    exeter_patients_followup(path)
 
-# def all():
-#     leeds_patients()
-#     bari_patients()
-#     sheffield_patients()
-    # leeds_volunteers()
-
+    bari_volunteers(path)
+    leeds_setup(path)
+    leeds_volunteers(path)
+    bordeaux_volunteers(path)
+    exeter_volunteers(path)
+    exeter_setup(path)
+    turku_philips_repeatability(path)
+    turku_ge_repeatability(path)
+    turku_ge_setup(path)
 
 
 if __name__=='__main__':
-   
-    # leeds_patients()
-    # bari_patients()
-    sheffield_patients()
-    # turku_philips_patients()
-    # bordeaux_patients_baseline()
-    # bordeaux_patients_followup()
-    # exeter_patients_baseline()
-    # exeter_patients_followup()
 
-    # bari_volunteers()
-    # leeds_setup()
-    # leeds_volunteers()
-    # bordeaux_volunteers()
-    # exeter_volunteers()
-    # exeter_setup()
-    # turku_philips_repeatability()
-    # turku_ge_repeatability()
-    # turku_ge_setup()
+    BUILD = r'C:\Users\md1spsx\Documents\Data\iBEAt_Build\dixon'
     
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build", type=str, default=BUILD, help="Build folder")
+    args = parser.parse_args()
+
+    path = os.path.join(args.build, 'stage_1_download')
+    os.makedirs(path, exist_ok=True)
+
+    logging.basicConfig(
+        filename=os.path.join(args.build, 'stage_1_download.log'),
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+   
+    run(path)
 
 
