@@ -5,7 +5,6 @@
 user_TOTSEG.txt
 user_XNAT.txt
 user_OSF.txt
-build/*
 
 ### package builds
 .venv/*
@@ -15,8 +14,7 @@ tests/export/*
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
-# Ignore all Python cache directories recursively
-**/__pycache__/
+*__pycache__/
 *.py[cod]
 *$py.class
 
@@ -25,6 +23,7 @@ tests/export/*
 
 # Distribution / packaging
 .Python
+build/
 develop-eggs/
 dist/
 downloads/
@@ -71,19 +70,6 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
 # Sphinx documentation
 docs/_build/
 
@@ -121,6 +107,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+myenv/
 .env
 .venv
 env/
@@ -128,6 +115,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+# environment.yml #Include this file for Apple Silicon Users to use conda
 
 # Spyder project settings
 .spyderproject
@@ -154,3 +142,6 @@ dmypy.json
 cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+#Mac DS Store files
+.DS_Store

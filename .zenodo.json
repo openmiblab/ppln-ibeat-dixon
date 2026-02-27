@@ -1,7 +1,7 @@
 {
   "title": "Harmonization of the iBEAt Dixon MRI data",
   "upload_type": "software",
-  "description": "See the README on GitHub: https://github.com/openmiblab/iBEAt-dixon",
+  "description": "See the README on GitHub: https://github.com/openmiblab/ppln-ibeat-dixon",
   "creators": [
     {
       "name": "Periquito, Joao",
@@ -19,7 +19,7 @@
   "related_identifiers": [
     {
       "relation": "isSupplementTo",
-      "identifier": "https://github.com/openmiblab/iBEAt-dixon"
+      "identifier": "https://github.com/openmiblab/ppln-ibeat-dixon"
     }
   ],
   "url": "https://miblab.org",
