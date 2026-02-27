@@ -5,84 +5,78 @@ import argparse
 import numpy as np
 from tqdm import tqdm
 import dbdicom as db
+from miblab_plot import mosaic_checkerboard
 
-from miblab_plot import mosaic_overlay
-
-from utils.total_segmentator_class_maps import class_map
+import utils.data
 
 
-def run(build):
-    run_site(build, 'Controls')
+
+def run_ibeat(build):
+
+    dir_coreg = os.path.join(build, 'dixon', 'stage_8_align_dixon_data')
+    dir_mosaics = os.path.join(build, 'dixon', 'stage_9_check_alignment')
+
+    db_coreg = os.path.join(dir_coreg, 'Controls')
+    run_db(db_coreg, dir_mosaics)
+
     for site in ['Exeter', 'Leeds', 'Bari', 'Bordeaux', 'Sheffield', 'Turku']:
-        run_site(build, 'Patients', site=site)
+        db_coreg = os.path.join(dir_coreg, 'Patients', site)
+        dir_mosaics = os.path.join(dir_mosaics, 'Patients', site)
+        run_db(db_coreg, dir_mosaics)
 
 
-def run_site(build, group, site=None):
 
-    source = 'stage_8_aligned_dixon_data'
-    results = 'stage_9_check_alignment'
+def run_db(db_coreg, dir_mosaics):
 
-    if group == 'Controls':
-        source_db = os.path.join(build, 'dixon', source, group) 
-        results_db = os.path.join(build, 'dixon', results, group)
-        kidney_masks_db = os.path.join(build, 'kidneyvol', 'stage_3_edit', group)
-        total_masks_db = os.path.join(build, 'totseg', 'stage_1_segment', group)
-    else:
-        source_db = os.path.join(build, 'dixon', source, group, site)
-        results_db = os.path.join(build, 'dixon', results, group, site)
-        kidney_masks_db = os.path.join(build, 'kidneyvol', 'stage_3_edit', group, site)
-        total_masks_db = os.path.join(build, 'totseg', 'stage_1_segment', group, site)
+    os.makedirs(dir_mosaics, exist_ok=True)
 
-    os.makedirs(results_db, exist_ok=True)
+    # List of reference dixon series
+    src = os.path.dirname(os.path.abspath(__file__))
+    record = utils.data.dixon_record(src)
 
-    kidney_class_map = {1: "kidney_left", 2: "kidney_right"}
-    total_class_map = class_map['total_mr']
+    # Get all coregistered water series
+    all_coreg_series = db.series(db_coreg)
+    all_coreg_water_series = [s for s in all_coreg_series if s[3][0][-5:]=='water']
 
-    # Get all water series in the source database
-    all_source_series = db.series(source_db)
-    all_water_series = [s for s in all_source_series if s[3][0][-5:]=='water']
-
-    # Loop over the masks
-    for water_series in tqdm(all_water_series, 'Displaying masks..'):
+    # Loop over the coregistered water series
+    for series_coreg_water in tqdm(all_coreg_water_series, 'Displaying masks..'):
 
         # Patient and study IDs
-        patient_id = water_series[1]
-        study_desc = water_series[2][0]
-        series_desc = water_series[3][0]
+        patient_id = series_coreg_water[1]
+        study_desc = series_coreg_water[2][0]
+        series_desc = series_coreg_water[3][0]
         sequence = series_desc[:-len('_water')]
 
-        # Skip if file exists
-        png_file = os.path.join(results_db, f'{patient_id}_{study_desc}_{sequence}.png')
-        if os.path.exists(png_file):
-             continue
-        
-        # Get mask and fat seriesx
-        kidney_mask_series = [kidney_masks_db, patient_id, (study_desc, 0), ('kidney_masks', 0)]
-        total_mask_series = [total_masks_db, patient_id, (study_desc, 0), ('total_mr', 0)]
-        fat_series = [source_db, patient_id, (study_desc, 0), (f'{sequence}_fat', 0)]
-        
-        # Read mask volume
-        kidney_mask_vol = db.volume(kidney_mask_series)
-        total_mask_vol = db.volume(total_mask_series).slice_like(kidney_mask_vol)
-
-        # Get image data - use water fraction so constant scaling can be used
-        water = db.volume(water_series).slice_like(kidney_mask_vol).values
-        fat = db.volume(fat_series).slice_like(kidney_mask_vol).values
-        water_fraction = np.divide(water, fat + water, out=np.zeros_like(water, dtype=float), where=(fat + water) != 0)
-    
-        # Get masks
-        rois = {}
-        # for idx, roi in total_class_map.items():
-        #     rois[roi] = (total_mask_vol.values==idx).astype(np.int16)
-        for idx, roi in kidney_class_map.items():
-            rois[roi] = (kidney_mask_vol.values==idx).astype(np.int16)
-
-        # Build mosaic
         try:
-            mosaic_overlay(water_fraction, rois, png_file, vmin=0, vmax=1, margin=[16,16,2], opacity=0.2)
-            # mosaic_overlay(water, rois, png_file, margin=None, opacity=0.2)
+
+            # Skip if it is the refence sequence
+            sequence_fixed = utils.data.dixon_series_desc(record, patient_id, study_desc)
+            if sequence == sequence_fixed:
+                continue
+
+            # Skip if file exists
+            png_file = os.path.join(dir_mosaics, f'{patient_id}_{study_desc}_{sequence}.png')
+            if os.path.exists(png_file):
+                continue
+            
+            # Defined fixed and coregistered series
+            study_coreg = [db_coreg, patient_id, (study_desc, 0)]
+            series_fixed_water = study_coreg + [(f'{sequence_fixed}_water', 0)]
+            series_coreg_water = study_coreg + [(f'{sequence}_water', 0)]       
+
+            # Load the data
+            val_fixed_water = db.volume(series_fixed_water, verbose=0).values
+            val_coreg_water = db.volume(series_coreg_water, verbose=0).values
+
+            # Build mosaics
+            mosaic_checkerboard(val_fixed_water, val_coreg_water, png_file, normalize=True)
+
+            logging.info(f'Successfully saved checkerboard for {patient_id}, {study_desc}, {sequence}')
+
         except:
-            logging.exception(f"{patient_id}_{study_desc}_{sequence}: error building mosaic")
+
+            logging.exception(f'Error building checkerboard for {patient_id}, {study_desc}, {sequence}')
+
 
 
 if __name__=='__main__':
@@ -102,4 +96,4 @@ if __name__=='__main__':
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
 
-    run(args.build)
+    run_ibeat(args.build)

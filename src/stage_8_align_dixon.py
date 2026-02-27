@@ -8,98 +8,95 @@ import numpy as np
 import dbdicom as db
 # from mdreg.ants import coreg, transform
 from mdreg.elastix import coreg, transform
-# from mdreg.skimage import coreg, transform
+#from mdreg.skimage import coreg, transform
 
 import utils.data
 
 
-def run(build):
-    run_site(build, 'Controls')
+def run_ibeat(build):
+
+    dir_moving = os.path.join(build, 'dixon', 'stage_5_clean_dixon_data')
+    dir_coreg = os.path.join(build, 'dixon', 'stage_8_align_dixon_data')
+
+    # Patients
     for site in ['Leeds', 'Bari', 'Turku', 'Bordeaux', 'Sheffield', 'Exeter']:
-        run_site(build, 'Patients', site=site)
+        db_moving = os.path.join(dir_moving, 'Patients', site)
+        db_coreg = os.path.join(dir_coreg, 'Patients', site)
+        run_db(db_moving, db_coreg)
+
+    # Controls
+    db_moving = os.path.join(dir_moving, 'Controls') 
+    db_coreg = os.path.join(dir_coreg, 'Controls')
+    run_db(db_moving, db_coreg)
     
 
-def run_site(build, group, site=None):
+def run_db(db_moving, db_coreg):
 
-    # Define database paths
-    source = 'test_stage_5_clean_dixon_data'
-    results = 'stage_8_aligned_dixon_data'
-
-    if group == 'Controls':
-        source_db = os.path.join(build, 'dixon', source, group) 
-        results_db = os.path.join(build, 'dixon', results, group)
-    else:
-        source_db = os.path.join(build, 'dixon', source, group, site)
-        results_db = os.path.join(build, 'dixon', results, group, site)
-
-    os.makedirs(results_db, exist_ok=True)
+    os.makedirs(db_coreg, exist_ok=True)
 
     # Get all fat series in the source database
-    all_source_series = db.series(source_db)
-    all_fat_series = [s for s in all_source_series if s[3][0][-3:]=='fat']
+    all_moving_series = db.series(db_moving)
+    all_water_series = [s for s in all_moving_series if s[3][0][-len('water'):]=='water']
 
     # List existing series so they can be skipped in the loop
-    existing_result_series = db.series(results_db)
+    existing_result_series = db.series(db_coreg)
 
     # List of reference dixon series
     src = os.path.dirname(os.path.abspath(__file__))
     record = utils.data.dixon_record(src)
 
     # Loop over the fat series in the source database
-    for source_series_fat in tqdm(all_fat_series, desc='Aligning dixons'):
+    for series_moving_water in tqdm(all_water_series, desc='Aligning dixons'):
 
         # Patient and study IDs
-        patient_id = source_series_fat[1]
-        study_desc = source_series_fat[2][0]
-        series_desc = source_series_fat[3][0]
-        sequence = series_desc[:-4]
+        patient_id = series_moving_water[1]
+        study_desc = series_moving_water[2][0]
+        series_desc = series_moving_water[3][0]
+        sequence = series_desc[:-len('_water')]
 
         # Get the other source series of the same sequence
-        source_study = [source_db, patient_id, (study_desc, 0)]
-        source_series_ip = source_study + [(f'{sequence}_in_phase', 0)]
-        source_series_op = source_study + [(f'{sequence}_out_phase', 0)]
-        source_series_water = source_study + [(f'{sequence}_water', 0)]
+        study_moving = [db_moving, patient_id, (study_desc, 0)]
+        series_moving_ip = study_moving + [(f'{sequence}_in_phase', 0)]
+        series_moving_op = study_moving + [(f'{sequence}_out_phase', 0)]
+        series_moving_fat = study_moving + [(f'{sequence}_fat', 0)]
 
         # Define corresponding results series
-        result_study = [results_db, patient_id, (study_desc, 0)]
-        result_series_ip = result_study + [(f'{sequence}_in_phase', 0)]
-        result_series_op = result_study + [(f'{sequence}_out_phase', 0)]
-        result_series_water = result_study + [(f'{sequence}_water', 0)]
-        result_series_fat = result_study + [(f'{sequence}_fat', 0)]
+        study_coreg = [db_coreg, patient_id, (study_desc, 0)]
+        series_coreg_ip = study_coreg + [(f'{sequence}_in_phase', 0)]
+        series_coreg_op = study_coreg + [(f'{sequence}_out_phase', 0)]
+        series_coreg_water = study_coreg + [(f'{sequence}_water', 0)]
+        series_coreg_fat = study_coreg + [(f'{sequence}_fat', 0)]
 
         # Skip computation if the results are already there
-        if result_series_ip in existing_result_series:
+        if series_coreg_ip in existing_result_series:
             continue
 
-        # Get the refence sequence and reference fat series
-        fixed_sequence = utils.data.dixon_series_desc(record, patient_id, study_desc)
-        fixed_series_water = source_study + [(f'{fixed_sequence}_water', 0)]
+        # Get the refence sequence and reference water series
+        sequence_fixed = utils.data.dixon_series_desc(record, patient_id, study_desc)
+        series_water_fixed = study_moving + [(f'{sequence_fixed}_water', 0)]
 
-        # Any error happens in the computations, log and move on to the next
         try:
 
             # The fixed sequence does not need coregistering
-            if sequence == fixed_sequence:
-                db.copy(source_series_ip, result_series_ip)
-                db.copy(source_series_op, result_series_op)
-                db.copy(source_series_fat, result_series_fat)
-                db.copy(source_series_water, result_series_water)
+            if sequence == sequence_fixed:
+                db.copy(series_moving_ip, series_coreg_ip)
+                db.copy(series_moving_op, series_coreg_op)
+                db.copy(series_moving_fat, series_coreg_fat)
+                db.copy(series_moving_water, series_coreg_water)
                 continue
-
-            # Read the fixed fat volume
-            fixed_vol = db.volume(fixed_series_water)
-
-            # Read the other volumes and reslice (in case geometries are not matched)
-            moving_vol_fat = db.volume(source_series_fat).slice_like(fixed_vol)
-            moving_vol_water = db.volume(source_series_water).slice_like(fixed_vol)
-            moving_vol_ip = db.volume(source_series_ip).slice_like(fixed_vol)
-            moving_vol_op = db.volume(source_series_op).slice_like(fixed_vol)
             
-            # Coregister fat series with the reference
-            spacing = fixed_vol.spacing.tolist()
-            coreg_values_water, transfo = coreg(
-                moving_vol_water.values.astype(float), 
-                fixed_vol.values.astype(float), 
+            # Read the volumes and reslice on fixed volume
+            vol_fixed_water = db.volume(series_water_fixed, verbose=0)
+            vol_moving_fat = db.volume(series_moving_fat, verbose=0).slice_like(vol_fixed_water)
+            vol_moving_water = db.volume(series_moving_water, verbose=0).slice_like(vol_fixed_water)
+            vol_moving_ip = db.volume(series_moving_ip, verbose=0).slice_like(vol_fixed_water)
+            vol_moving_op = db.volume(series_moving_op, verbose=0).slice_like(vol_fixed_water)
+            
+            # Coregister water series with the reference
+            spacing = vol_fixed_water.spacing.tolist()
+            values_coreg_water, transfo = coreg(
+                vol_moving_water.values.astype(float), 
+                vol_fixed_water.values.astype(float), 
                 # Elastix options
                 spacing=spacing,
                 FinalGridSpacingInPhysicalUnits="16",
@@ -108,19 +105,27 @@ def run_site(build, group, site=None):
             )
 
             # Apply the same transformation to the other series
-            coreg_values_fat = transform(moving_vol_fat.values, transfo, spacing=spacing)
-            coreg_values_ip = transform(moving_vol_ip.values, transfo, spacing=spacing)
-            coreg_values_op = transform(moving_vol_op.values, transfo, spacing=spacing)
+            values_coreg_fat = transform(vol_moving_fat.values, transfo, spacing=spacing)
+            values_coreg_ip = transform(vol_moving_ip.values, transfo, spacing=spacing)
+            values_coreg_op = transform(vol_moving_op.values, transfo, spacing=spacing)
+
+            # # Ensure positive (not used)
+            # values_coreg_water[values_coreg_water < 0] = 0
+            # values_coreg_fat[values_coreg_fat < 0] = 0
+            # values_coreg_ip[values_coreg_ip < 0] = 0
+            # values_coreg_op[values_coreg_op < 0] = 0
 
             # Save results 
-            db.write_volume((coreg_values_fat, fixed_vol.affine), result_series_fat, ref=source_series_fat)
-            db.write_volume((coreg_values_water, fixed_vol.affine), result_series_water, ref=source_series_water)
-            db.write_volume((coreg_values_ip, fixed_vol.affine), result_series_ip, ref=source_series_ip)
-            db.write_volume((coreg_values_op, fixed_vol.affine), result_series_op, ref=source_series_op)
+            db.write_volume((values_coreg_fat, vol_fixed_water.affine), series_coreg_fat, ref=series_moving_fat)
+            db.write_volume((values_coreg_water, vol_fixed_water.affine), series_coreg_water, ref=series_moving_water)
+            db.write_volume((values_coreg_ip, vol_fixed_water.affine), series_coreg_ip, ref=series_moving_ip)
+            db.write_volume((values_coreg_op, vol_fixed_water.affine), series_coreg_op, ref=series_moving_op)
+
+            logging.info(f"Successfully aligned {series_moving_water[1:]}")
 
         except:
 
-            logging.exception(f"Error aligning {source_series_fat}")
+            logging.exception(f"Error aligning {series_moving_water[1:]}")
 
 
 
@@ -143,6 +148,6 @@ if __name__=='__main__':
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
 
-    run(args.build)
+    run_ibeat(args.build)
 
 
