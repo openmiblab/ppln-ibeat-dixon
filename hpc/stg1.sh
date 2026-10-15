@@ -4,9 +4,9 @@
 #SBATCH --time=72:00:00
 #SBATCH --mail-user=s.sourbron@sheffield.ac.uk
 #SBATCH --mail-type=FAIL,END
-#SBATCH --job-name=stg12-1
-#SBATCH --output=logs/stg12-1.out
-#SBATCH --error=logs/stg12-1.err
+#SBATCH --job-name=dxn1
+#SBATCH --output=logs/dxn1.out
+#SBATCH --error=logs/dxn1.err
 
 # Unsets the CPU binding policy.
 # Some clusters automatically bind threads to cores; unsetting it can 
@@ -28,12 +28,12 @@ module load Mesa/22.2.4-GCCcore-12.2.0 # This is needed for pyvista plotting
 export VTK_DEFAULT_OPENGL_WINDOW=vtkOSOpenGLRenderWindow
 
 # Define path variables here
-ENV="/mnt/parscratch/users/$(whoami)/envs/kssa"
-CODE="/mnt/parscratch/users/$(whoami)/scripts/ppln-ibeat-kidney_ssa/src/ibeat_kidney_ssa"
+ENV="/mnt/parscratch/users/$(whoami)/envs/dxn"
+CODE="/mnt/parscratch/users/$(whoami)/scripts/ppln-ibeat-dixon/src/ibeat_dixon"
 BUILD="/mnt/parscratch/users/$(whoami)/data/iBEAt_Build"
 ARCHIVE="login1:/shared/abdominal_imaging/Archive/iBEAt_Build"
 
 
 # srun runs your program on the allocated compute resources managed by Slurm
-srun "$ENV/bin/python" "$CODE/stage_12_features.py" --build="$BUILD" --model="spectral"
-rsync -av --no-group --no-perms "$BUILD/kidney_ssa" "$ARCHIVE"
+srun "$ENV/bin/python" "$CODE/stage_1_download.py" --build="$BUILD"
+rsync -av --no-group --no-perms "$BUILD/dixon/stage_1_download" "$ARCHIVE/dixon"

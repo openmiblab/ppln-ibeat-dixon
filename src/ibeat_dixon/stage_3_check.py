@@ -10,11 +10,9 @@ matplotlib.use('Agg')
 
 import dbdicom as db
 import pydicom
+from miblab_plot import db_mosaic
 
 from utils.constants import SITE_IDS
-from utils.db_plot import db_mosaic
-
-
 
 
 

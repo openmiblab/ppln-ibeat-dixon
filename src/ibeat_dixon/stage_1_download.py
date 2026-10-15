@@ -192,7 +192,7 @@ def run(build, dir_output):
 
     logging.info("Stage 1 --- Downloading data ---")
  
-    n_max=2
+    n_max=None
 
     for group, props in DOWNLOAD.items():
         try:

@@ -5,7 +5,7 @@ import logging
 from tqdm import tqdm
 import dbdicom as db
 
-from utils.db_plot import db_mosaic
+from miblab_plot import db_mosaic
 
 
 def run(build):
