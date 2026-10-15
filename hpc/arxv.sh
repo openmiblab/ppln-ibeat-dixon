@@ -20,14 +20,19 @@ export SLURM_EXPORT_ENV=ALL
 
 # Loads the Anaconda module provided by the cluster.
 # (On HPC systems, software is usually installed as “modules” to avoid version conflicts.)
-module load Anaconda3/2024.02-1
+module load Anaconda3/2025.06-1
 module load Python/3.10.8-GCCcore-12.2.0 # essential to load latest GCC
 
 # Define path variables here
-ENV="/mnt/parscratch/users/$(whoami)/envs/kssa"
-CODE="/mnt/parscratch/users/$(whoami)/scripts/ppln-ibeat-kidney_ssa/src/ibeat_kidney_ssa"
+ENV="/mnt/parscratch/users/$(whoami)/envs/dxn"
+CODE="/mnt/parscratch/users/$(whoami)/scripts/ppln-ibeat-dixon/src/ibeat_dixon"
 BUILD="/mnt/parscratch/users/$(whoami)/data/iBEAt_Build"
-ARCHIVE="login1:/shared/abdominal_imaging/Archive/iBEAt_Build"
+ARCHIVE="loginb:/shared/abdominal_imaging/Archive/iBEAt_Build"
 
 # srun runs your program on the allocated compute resources managed by Slurm
-rsync -av --no-group --no-perms "$BUILD/kidney_ssa" "$ARCHIVE"
+# THIS DOES A DRY RUN - ALWYAS BEST TO DO THIS FIRST
+# rsync -avn --delete --no-group --no-perms "$BUILD/dixon/stage_5_clean_dixon_data" "$ARCHIVE/dixon"
+
+# !!!!!!!!!!!!!!!! CAREFUL THIS DELETES EXTRA FILES LOCALLY !!!!!!!!!!!!!!!!!!!
+rsync -av --delete --no-group --no-perms "$BUILD/dixon/stage_5_clean_dixon_data" "$ARCHIVE/dixon"
+
