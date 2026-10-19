@@ -23,15 +23,12 @@ export SLURM_EXPORT_ENV=ALL
 module load Anaconda3/2025.06-1
 module load Python/3.10.8-GCCcore-12.2.0 # essential to load latest GCC
 
-# Tell VTK/PyVista to use the OSMesa (Off-Screen) library
-export VTK_DEFAULT_OPENGL_WINDOW=vtkOSOpenGLRenderWindow
-
 # Define path variables here
 ENV="/mnt/parscratch/users/$(whoami)/envs/dxn"
 CODE="/mnt/parscratch/users/$(whoami)/scripts/ppln-ibeat-dixon/src/ibeat_dixon"
-BUILD="/mnt/parscratch/users/$(whoami)/data/iBEAt_Build"
-ARCHIVE="loginb:/shared/abdominal_imaging/Archive/iBEAt_Build"
+LOCAL="/mnt/parscratch/users/$(whoami)/data/iBEAt_Build"
+ARCHIVE="logina:/shared/abdominal_imaging/Archive/iBEAt_Build"
 
 # srun runs your program on the allocated compute resources managed by Slurm
-srun "$ENV/bin/python" "$CODE/stage_1_download.py" --build="$BUILD"
-# rsync -av --no-group --no-perms "$BUILD/dixon/stage_1_download" "$ARCHIVE/dixon"
+srun "$ENV/bin/python" "$CODE/stage_1_download.py" --build="$LOCAL"
+rsync -av --no-group --no-perms --delete "$LOCAL/dixon/stage_1_download" "$ARCHIVE/dixon"

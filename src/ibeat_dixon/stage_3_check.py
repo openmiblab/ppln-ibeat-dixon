@@ -12,7 +12,16 @@ import dbdicom as db
 import pydicom
 from miblab_plot import db_mosaic
 
-from utils.constants import SITE_IDS
+
+SITE_IDS = {
+    'Bari': ['1128'],
+    'Leeds': ['4128'],
+    'Bordeaux': ['2128', '6128'],
+    'Exeter': ['3128'],
+    'Leeds': ['4128'],
+    'Sheffield': ['7128'],
+    'Turku': ['5128', '6128'],
+}
 
 
 

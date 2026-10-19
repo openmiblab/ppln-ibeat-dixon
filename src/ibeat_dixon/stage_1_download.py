@@ -2,6 +2,7 @@
 Automatic download of DIXON data from XNAT.
 """
 import logging
+from pathlib import Path
 
 from miblab import pipe
 from miblab_data.xnat import download_series
@@ -188,21 +189,22 @@ DOWNLOAD = {
 
 
 
-def run(build, dir_output):
-
-    logging.info("Stage 1 --- Downloading data ---")
- 
-    n_max=None
+def run(build, logfile):
+    dir_output = pipe.stage_output_dir(build, PIPELINE, __file__)
+    dir_ppln = Path(__file__).resolve().parents[2]
 
     for group, props in DOWNLOAD.items():
+        logging.info(f"Start downloading {group}.")
         try:
             download_series(
                 xnat_url="https://qib.shef.ac.uk",
                 output_dir=dir_output,
                 log=True,
-                n_max=n_max,
+                n_max=1,
+                cred=dir_ppln / 'user_XNAT.txt',
                 **props
             )
+            logging.info(f"Success downloading {group}.")
         except:
             logging.exception(f"Error downloading {group}.")
 

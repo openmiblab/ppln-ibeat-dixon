@@ -18,14 +18,14 @@ import vreg
 
 from miblab import pipe
 
+from utils.data import fat_water_swap_record
+
 PIPELINE = 'dixon'
 
 EXCLUDE = [
     "7128_048", # Sheffield: localizer only - check transfer
     "7128_068", # Sheffield: data only until T2 haste
 ]
-
-
 
 
 def flatten_folder(root_folder):
@@ -493,7 +493,7 @@ def swap_fat_water(record, dixon, series, image_type):
 
 def leeds_054(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient 054
     # Problem: each image saved in a separate series with its own SeriesInstanceUID
@@ -544,10 +544,12 @@ def leeds_054(build, datapath):
 
 def leeds_patients(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Leeds", "Leeds_Patients")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Patients", "Leeds") 
     os.makedirs(sitedatapath, exist_ok=True)
     
@@ -605,10 +607,12 @@ def leeds_patients(build, datapath):
 
 def leeds_setup(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Leeds", "Leeds_setup_scans")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls") 
     os.makedirs(sitedatapath, exist_ok=True)
     
@@ -679,10 +683,12 @@ def leeds_setup(build, datapath):
 
 def leeds_repeatability(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Leeds", "Leeds_volunteer_repeatability_study")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls")
     os.makedirs(sitedatapath, exist_ok=True)
     
@@ -752,6 +758,9 @@ def bari_fix_069(datapath):
    
     sitedatapath = os.path.join(datapath, "Patients", "Bari")
     ip = [sitedatapath, '1128_069', 'Baseline', 'Dixon_2_in_phase']
+
+    if not db.exists(ip):
+        return
 
     # Get in-phase slices
     ip_slices = db.slices(ip)
@@ -829,10 +838,12 @@ def bari_030(dixon_split, datapath):
 
 def bari_volunteers(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bari", "Bari_Volunteers_Repeatability")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls")
     os.makedirs(sitedatapath, exist_ok=True)
 
@@ -932,10 +943,12 @@ def bari_volunteers(build, datapath):
 
 def bari_patients(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bari", "Bari_Patients")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Patients", "Bari")
     os.makedirs(sitedatapath, exist_ok=True)
 
@@ -1041,18 +1054,18 @@ def bari_patients(build, datapath):
 
 def sheffield(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
-    # Clean Leeds patient data
+    # Clean Sheffield patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Sheffield")
+    if not os.path.exists(sitedownloadpath):
+        return
+
     sitedatapath = os.path.join(datapath, "Patients", "Sheffield") 
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record(build)
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -1142,18 +1155,18 @@ def sheffield(build, datapath):
 
 def turku_ge_patients(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_Patients_GE")
+    if not os.path.exists(sitedownloadpath):
+        return
+    
     sitedatapath = os.path.join(datapath, "Patients", "Turku") 
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record(build)
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -1240,18 +1253,17 @@ def turku_ge_patients(build, datapath):
 
 def turku_ge_volunteers(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_Volunteers_GE_Repeatability")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls")
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record()
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -1351,18 +1363,17 @@ def turku_ge_volunteers(build, datapath):
 
 def turku_ge_setup(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_GE_Setup_Tests")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls")
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record()
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -1442,10 +1453,12 @@ def turku_ge_setup(build, datapath):
                                 
 def turku_philips_patients(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku","Turku_Patients_Philips")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Patients", "Turku_Philips")
     os.makedirs(sitedatapath, exist_ok=True)
 
@@ -1535,10 +1548,12 @@ def turku_philips_patients(build, datapath):
 
 def turku_philips_volunteers(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Define input and output folders
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Turku", "Turku_volunteer_repeatability_study")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls")
     os.makedirs(sitedatapath, exist_ok=True)
 
@@ -1643,18 +1658,17 @@ def turku_philips_volunteers(build, datapath):
 
 def bordeaux_patients(build, datapath, visit='Baseline'):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bordeaux", f"Bordeaux_Patients_{visit}")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Patients", "Bordeaux") 
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record()
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -1730,18 +1744,17 @@ def bordeaux_patients(build, datapath, visit='Baseline'):
 
 def bordeaux_volunteers(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Bordeaux", f"Bordeaux_Volunteers_Repeatability_Baseline")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls") 
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record()
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -1841,7 +1854,7 @@ def exeter_interpolate_vol(series):
 
 def exeter_111(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # In- and opposed phase combined in the same series
     # No fat or water maps computed
@@ -1850,6 +1863,8 @@ def exeter_111(build, datapath):
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Exeter", f"Exeter_Patients_{visit}")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Patients", "Exeter") 
     os.makedirs(sitedatapath, exist_ok=True)
 
@@ -1914,18 +1929,17 @@ def exeter_111(build, datapath):
 
 def exeter_patients(build, datapath, visit='Baseline'):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Exeter", f"Exeter_Patients_{visit}")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Patients", "Exeter") 
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record()
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -2029,18 +2043,17 @@ def exeter_patients(build, datapath, visit='Baseline'):
 
 def exeter_setup(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Exeter", f"Exeter_setup_scans")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls")
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record()
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -2117,18 +2130,17 @@ def exeter_setup(build, datapath):
 
 def exeter_repeatability(build, datapath):
 
-    downloadpath = os.path.join(build, 'stage_1_download')
+    downloadpath = os.path.join(build, 'dixon', 'stage_1_download')
 
     # Clean Leeds patient data
     sitedownloadpath = os.path.join(downloadpath, "BEAt-DKD-WP4-Exeter", f"Exeter_Volunteer")
+    if not os.path.exists(sitedownloadpath):
+        return
     sitedatapath = os.path.join(datapath, "Controls")
     os.makedirs(sitedatapath, exist_ok=True)
 
     # Read fat-water swap record to avoid repeated reading at the end
-    record = os.path.join(os.getcwd(), 'src', 'data', 'fat_water_swap_record.csv')
-    with open(record, 'r') as file:
-        reader = csv.reader(file)
-        record = [row for row in reader]
+    record = fat_water_swap_record()
 
     # Loop over all patients
     patients = [f.path for f in os.scandir(sitedownloadpath) if f.is_dir()]
@@ -2207,7 +2219,8 @@ def exeter_repeatability(build, datapath):
                                 db.write_volume(dixon_vol, dixon_clean, ref=dixon)
 
 
-def run(build, dir_output):
+def run(build, logfile):
+    dir_output = pipe.stage_output_dir(build, PIPELINE, __file__)
 
     sheffield(build, dir_output)
     leeds_patients(build, dir_output)
